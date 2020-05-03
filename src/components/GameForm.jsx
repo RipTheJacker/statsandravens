@@ -15,6 +15,8 @@ export const GameForm = () => {
     <form
       className='form'
       onSubmit={handleSubmit(onSubmit)}>
+      <h3 className='title'>Record Game</h3>
+      
       <div className='field'>
         <label className='label'>Name</label>
         <div className='control'>

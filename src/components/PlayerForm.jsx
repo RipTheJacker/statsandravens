@@ -28,7 +28,8 @@ export const PlayerForm = (props) => {
 
   return (
     <form className='form' onSubmit={handleSubmit(onAddPlayer)}>
-
+      <h3 className='title'>New Player</h3>
+      
       <div className='field is-horizontal'>
         <div className='field-label'>
           <label className='label'>Name</label>

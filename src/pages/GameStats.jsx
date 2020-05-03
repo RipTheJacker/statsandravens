@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import ContentLoader from 'react-content-loader'
-import { useForm } from "react-hook-form"
+import { useForm, Controller } from "react-hook-form"
 import { useFirestore } from '/hooks/use-firestore'
 import { Timestamp } from '/components/Timestamp'
 import { PlayerForm } from '/components/PlayerForm'
+import ContentEditable from 'react-contenteditable'
 
 const Loading = () => (
   <ContentLoader>
@@ -33,7 +34,12 @@ export const GameStats = () => {
     console.log("data", data)
   }
 
+  const updateField = (data) => {
+    console.log("field updated", data)
+  }
+
   useEffect(() => {
+
     return db.collection('games').doc(gameId)
       .onSnapshot((doc) => {
         setGame(doc.data())
