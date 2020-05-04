@@ -12,3 +12,5 @@ import "firebase/firestore";
 firebase.initializeApp(firebaseConfig)
 
 export const useFirestore = () => firebase.firestore()
+export const addArrayItem = (item) => firebase.firestore.FieldValue.arrayUnion( item )
+export const removeArrayItem = (item) => firebase.firestore.FieldValue.arrayRemove( item )

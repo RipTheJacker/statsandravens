@@ -3,7 +3,7 @@ import { render } from 'react-dom'
 
 import App from './App'
 
-import 'bulma'
+import '/scss/index.scss'
 
 render(
   <App />,

@@ -1,11 +1,15 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import ContentLoader from 'react-content-loader'
 import { useForm, Controller } from "react-hook-form"
-import { useFirestore } from '/hooks/use-firestore'
+import { useFirestore, addArrayItem, removeArrayItem } from '/hooks/use-firestore'
 import { Timestamp } from '/components/Timestamp'
-import { PlayerForm } from '/components/PlayerForm'
+import { Anchor } from '/components/Anchor'
+import { PlayerStatForm } from '/components/PlayerStatForm'
 import ContentEditable from 'react-contenteditable'
+import { useModal } from '/hooks/use-modal'
+import { ConfirmationDialog } from '/components/ConfirmationDialog'
+import { firstBy } from "thenby"
 
 const Loading = () => (
   <ContentLoader>
@@ -26,49 +30,136 @@ const StatItem = ({ heading, data }) => (
 )
 
 export const GameStats = () => {
-  const { id: gameId } = useParams()
+  const { id: gameId, groupId } = useParams()
   const db = useFirestore()
+  const gameName = useRef('')
   const [game, setGame] = useState(null)
+  const [groupPlayers, setPlayers] = useState(null)
+  const [resultToRemove, setResultToRemove] = useState(null)
 
-  const onAddPlayer = (data) => {
-    console.log("data", data)
+  const [isActive, toggleModal] = useModal()
+
+  const onAddResult = (data) => {
+    db.doc(`/game-groups/${groupId}/games/${gameId}`)
+      .update({
+        results: addArrayItem( { ...data } )
+      }).then(() => {
+        toggleModal()
+      })
   }
 
-  const updateField = (data) => {
-    console.log("field updated", data)
+  const onRemoveResult = () => {
+
+    db.doc(`/game-groups/${groupId}/games/${gameId}`)
+      .update({
+        results: removeArrayItem( resultToRemove )
+      }).then(() => {
+        setResultToRemove(null)
+      }).catch((error) => {
+        console.log("remove error", error)
+      })
+  }
+
+  const trackName = (event) => {
+    gameName.current = event.target.value
+  }
+
+  const updateField = () => {
+    db.doc(`/game-groups/${groupId}/games/${gameId}`)
+      .update({
+        name: gameName.current
+      })
   }
 
   useEffect(() => {
+    const players$ = db.collection(`game-groups/${groupId}/players`)
+      .onSnapshot((snapshot) => {
+        setPlayers(snapshot.docs.map(doc => ({...doc.data(), id: doc.id })))
+      })
 
-    return db.collection('games').doc(gameId)
+    const game$ = db.doc(`game-groups/${groupId}/games/${gameId}`)
       .onSnapshot((doc) => {
         setGame(doc.data())
       })
+
+    return () => {
+      players$()
+      game$()
+    }
   }, [gameId])
 
   if (!game) return <Loading />
 
-  const players = game.players.map(player => player.name)
-  const winner = game.players[0]
+console.log("results", game.results)
+  const sortedResults = game.results.sort(
+    firstBy('castles', 'desc')
+      .thenBy('strongholds', 'desc')
+      .thenBy('supply', 'desc')
+      .thenBy('powerTokens', 'desc')
+      .thenBy('ironThrone', 'desc')
+  )
 
   return (
     <article>
       <div className='container'>
-        <h1 className='title'>{game.name}</h1>
-        <Timestamp value={game.date.toDate()} />
-        <ul className='game-details-list'>
-          <li>Players: {players.join(', ')}</li>
-          <li>Winner: {winner.name} {winner.house}</li>
-        </ul>
+        <div className='level'>
+          <div className='level-left'>
+            <div className='level-item'>
+              <div>
+                <nav className='breadcrumb has-dot-separator'>
+                  <ul>
+                    <li><Anchor href={`/groups/${groupId}`} className='is-size-5'>Group</Anchor></li>
+                    <li>
+                      <a href='#' className='is-active'>
+                        <ContentEditable
+                          html={game.name}
+                          tagName='h1'
+                          className='title is-5'
+                          onBlur={() => updateField() }
+                          onChange={trackName} />
+                      </a>
+                    </li>
+                  </ul>
+                </nav>
+              </div>
+            </div>
+          </div>
+          <div className='level-right'>
+            <div className='level-item'>
+              <div>
+                <p className='heading'>Played On</p>
+                <p className='title is-7'>
+                  <Timestamp value={game.date.toDate()}/>
+                </p>
+              </div>
+            </div>
+            <div className='level-item'>
+              <div>
+                <p className='heading'>Rounds</p>
+                <p className='title is-7'>{game.rounds}</p>
+              </div>
+            </div>
+            <div className='level-item'>
+              <div>
+                <button className='button is-small' onClick={() => toggleModal('add-result')}>Add Result</button>
+              </div>
+            </div>
+          </div>
+        </div>
 
-        {game.players.map(player => (
-          <div className='media' key={player.name}>
-            <div className='media-content'>
-              <nav className='level'>
+        <div className='media'>
+          <div className='media-left'>
+            <h4 className='subtitle'>Players</h4>
+          </div>
+
+          <div className='media-content'>
+            {sortedResults.map(result => (
+              <div className='level' key={result.playerId}>
                 <div className='level-left'>
                   <div className='level-item'>
                     <div>
-                      <p className='title'>{player.name}</p>
+                      <p className='title'>{result.player.name}</p>
+                      <button className='button is-small is-rounded is-danger' onClick={() => setResultToRemove(result) }>Remove</button>
                     </div>
                   </div>
                 </div>
@@ -79,27 +170,36 @@ export const GameStats = () => {
                       <p className='heading'>House</p>
                       <p className='title'>
                         <span className='tag is-medium'>
-                          {player.house}
+                          {result.house}
                         </span>
                       </p>
                     </div>
                   </div>
-                  <StatItem heading='Castles' data={player.castles} />
-                  <StatItem heading='Strongholds' data={player.strongholds} />
-                  <StatItem heading='Power Tokens' data={player.powerTokens} />
-                  <StatItem heading='Supply' data={player.supply} />
+                  <StatItem heading='Castles' data={result.castles} />
+                  <StatItem heading='Strongholds' data={result.strongholds} />
+                  <StatItem heading='Power Tokens' data={result.powerTokens} />
+                  <StatItem heading='Supply' data={result.supply} />
                 </div>
-              </nav>
-            </div>
+              </div>
+            ))}
           </div>
-        ))}
-
-        <div>
-          <button className='button'>Add Player</button>
         </div>
 
+        <ConfirmationDialog
+          title="Confirm Deletion"
+          message={`This stat will be deleted.`}
+          onConfirm={onRemoveResult}
+          onCancel={() => setResultToRemove(null) }
+          isActive={resultToRemove !== null}
+          />
+
         <div className='add-player'>
-          <PlayerForm onAddPlayer={onAddPlayer} />
+          <PlayerStatForm
+            players={groupPlayers}
+            onSave={onAddResult}
+            isActive={isActive === 'add-result'}
+            onCancel={toggleModal}
+            />
         </div>
       </div>
     </article>

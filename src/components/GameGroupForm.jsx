@@ -2,15 +2,17 @@ import React, { useState, useEffect } from 'react'
 import { useForm } from "react-hook-form"
 import { Modal } from '/components/Modal'
 
-export const PlayerForm = (props) => {
-  const { onSave, onCancel, isActive } = props
-  const { register, errors, handleSubmit, reset } = useForm()
+export const GameGroupForm = ({ title, isActive, onSave, onCancel }) => {
+  const { register, errors, handleSubmit } = useForm()
+
+  const onSubmit = (data) => {
+    onSave(data)
+  }
 
   return (
-    <Modal title={"Add Player"} isActive={isActive}>
-      <form className='form' onSubmit={handleSubmit(onSave)}>
-        <h3 className='title'>New Player</h3>
-
+    <Modal title={"Create a Game Group"} isActive={isActive}>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <p className='subtitle is-6'>A place to track the games you play with friends.</p>
         <div className='field'>
           <label className='label'>Name</label>
           <div className='control'>
@@ -25,10 +27,10 @@ export const PlayerForm = (props) => {
 
         <div className='field is-grouped'>
           <div className="control">
-            <button className="button is-link">Submit</button>
+            <button className="button is-link">Create</button>
           </div>
           <div className="control">
-            <button className="button is-link is-light" onClick={onCancel}>Cancel</button>
+            <button className="button" onClick={onCancel}>Cancel</button>
           </div>
         </div>
       </form>
