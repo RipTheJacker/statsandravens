@@ -10,6 +10,8 @@ import { PlayerForm } from '/components/PlayerForm'
 import { GameCard } from '/components/GameCard'
 import { Loading } from '/components/Loading'
 import { LevelItem } from '/components/LevelItem'
+import { Houses } from '/config/constants'
+import { HouseLabel } from '/components/HouseLabel'
 
 const reducer = (state, action) => {
   switch (action.type) {

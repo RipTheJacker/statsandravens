@@ -1,5 +1,8 @@
-export const Houses = {
-  'martell': {
-    color: ''
-  }
-}
+export const Houses = [
+  "martell",
+  "tyrell",
+  "lannister",
+  "greyjoy",
+  "stark",
+  "baratheon"
+]

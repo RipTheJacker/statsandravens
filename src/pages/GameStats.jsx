@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import ContentLoader from 'react-content-loader'
-import { useForm, Controller } from "react-hook-form"
 import { useFirestore, addArrayItem, removeArrayItem } from '/hooks/use-firestore'
 import { Timestamp } from '/components/Timestamp'
 import { Anchor } from '/components/Anchor'
