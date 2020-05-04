@@ -27,12 +27,14 @@ export const GroupCard = (props) => {
       </div>
 
       <div className='card-content'>
-        <div className='tile is-ancestor'>
+        <div className='columns is-variable is-1 is-multiline'>
           {players.map(player => (
-              <div className='tile is-3 is-child box' key={player.id}>
-                <p className='has-text-weight-bold'>{player.get('name')}</p>
-                <p>Played: {player.get('gamesPlayed')}</p>
-                <p>Wins: {player.get('wins')}</p>
+              <div className='column is-one-quarter' key={player.id}>
+                <div className='box'>
+                  <p className='has-text-weight-bold'>{player.get('name')}</p>
+                  <p>Played: {player.get('gamesPlayed')}</p>
+                  <p>Wins: {player.get('wins')}</p>
+                </div>
               </div>
           ))}
         </div>

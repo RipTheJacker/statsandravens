@@ -4,6 +4,7 @@ import ContentLoader from 'react-content-loader'
 import { useFirestore, addArrayItem, removeArrayItem } from '/hooks/use-firestore'
 import { Timestamp } from '/components/Timestamp'
 import { Anchor } from '/components/Anchor'
+import { Icon } from '/components/Icon'
 import { PlayerStatForm } from '/components/PlayerStatForm'
 import ContentEditable from 'react-contenteditable'
 import { useModal } from '/hooks/use-modal'
@@ -99,108 +100,120 @@ console.log("results", game.results)
   )
 
   return (
-    <article>
-      <div className='container'>
-        <div className='level'>
-          <div className='level-left'>
-            <div className='level-item'>
-              <div>
-                <nav className='breadcrumb has-dot-separator'>
-                  <ul>
-                    <li><Anchor href={`/groups/${groupId}`} className='is-size-5'>Group</Anchor></li>
-                    <li>
-                      <a href='#' className='is-active'>
-                        <ContentEditable
-                          html={game.name}
-                          tagName='h1'
-                          className='title is-5'
-                          onBlur={() => updateField() }
-                          onChange={trackName} />
-                      </a>
-                    </li>
-                  </ul>
-                </nav>
+    <>
+      <section className='section'>
+        <div className='container'>
+          <div className='level'>
+            <div className='level-left'>
+              <div className='level-item'>
+                <div>
+                  <nav className='breadcrumb has-dot-separator'>
+                    <ul>
+                      <li><Anchor href={`/groups/${groupId}`} className='is-size-5'>Group</Anchor></li>
+                      <li>
+                        <a href='#' className='is-active'>
+                          <ContentEditable
+                            html={game.name}
+                            tagName='h1'
+                            className='title is-5'
+                            onBlur={() => updateField() }
+                            onChange={trackName} />
+                        </a>
+                      </li>
+                    </ul>
+                  </nav>
+                </div>
               </div>
             </div>
-          </div>
-          <div className='level-right'>
-            <div className='level-item'>
-              <div>
-                <p className='heading'>Played On</p>
-                <p className='title is-7'>
-                  <Timestamp value={game.date.toDate()}/>
-                </p>
+
+            <div className='level-right'>
+              <div className='level-item'>
+                <div>
+                  <p className='heading'>Played On</p>
+                  <p className='title is-7'>
+                    <Timestamp value={game.date.toDate()}/>
+                  </p>
+                </div>
               </div>
-            </div>
-            <div className='level-item'>
-              <div>
-                <p className='heading'>Rounds</p>
-                <p className='title is-7'>{game.rounds}</p>
+              <div className='level-item'>
+                <div>
+                  <p className='heading'>Rounds</p>
+                  <p className='title is-7'>{game.rounds}</p>
+                </div>
               </div>
-            </div>
-            <div className='level-item'>
-              <div>
-                <button className='button is-small' onClick={() => toggleModal('add-result')}>Add Result</button>
+              <div className='level-item'>
+                <div>
+                  <button className='button is-small' onClick={() => toggleModal('add-result')}>Add Result</button>
+                </div>
               </div>
             </div>
           </div>
         </div>
+      </section>
 
-        <div className='media'>
-          <div className='media-left'>
-            <h4 className='subtitle'>Players</h4>
-          </div>
+      <section className='section'>
+        <div className='container'>
+          <div className='media'>
+            <div className='media-left'>
+              <h4 className='subtitle'>Players</h4>
+            </div>
 
-          <div className='media-content'>
-            {sortedResults.map(result => (
-              <div className='level' key={result.playerId}>
-                <div className='level-left'>
-                  <div className='level-item'>
-                    <div>
-                      <p className='title'>{result.player.name}</p>
-                      <button className='button is-small is-rounded is-danger' onClick={() => setResultToRemove(result) }>Remove</button>
+            <div className='media-content'>
+              {sortedResults.map((result, index) => (
+                <div className='level' key={result.playerId}>
+                  <div className='level-left'>
+                    <div className='level-item'>
+                      <div>
+                        <p className='title'>
+                          {result.player.name}
+                          {index === 0 && <Icon name='seal-variant' className='has-text-gold' />}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className='level-right'>
+                    <div className='level-item has-text-centered'>
+                      <div>
+                        <p className='heading'>House</p>
+                        <p className='title'>
+                          <span className='tag is-medium'>
+                            {result.house}
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+                    <StatItem heading='Castles' data={result.castles} />
+                    <StatItem heading='Strongholds' data={result.strongholds} />
+                    <StatItem heading='Power Tokens' data={result.powerTokens} />
+                    <StatItem heading='Supply' data={result.supply} />
+                    <div className='level-item has-actions'>
+                      <div>
+                        <button className='button is-small is-rounded is-danger' onClick={() => setResultToRemove(result) }>Remove</button>
+                      </div>
                     </div>
                   </div>
                 </div>
-
-                <div className='level-right'>
-                  <div className='level-item has-text-centered'>
-                    <div>
-                      <p className='heading'>House</p>
-                      <p className='title'>
-                        <span className='tag is-medium'>
-                          {result.house}
-                        </span>
-                      </p>
-                    </div>
-                  </div>
-                  <StatItem heading='Castles' data={result.castles} />
-                  <StatItem heading='Strongholds' data={result.strongholds} />
-                  <StatItem heading='Power Tokens' data={result.powerTokens} />
-                  <StatItem heading='Supply' data={result.supply} />
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
+      </section>
 
-        <ConfirmationDialog
-          title="Confirm Deletion"
-          message={`This stat will be deleted.`}
-          onConfirm={onRemoveResult}
-          onCancel={() => setResultToRemove(null) }
-          isActive={resultToRemove !== null}
-          />
+      <ConfirmationDialog
+        title="Confirm Deletion"
+        message={`This stat will be deleted.`}
+        onConfirm={onRemoveResult}
+        onCancel={() => setResultToRemove(null) }
+        isActive={resultToRemove !== null}
+        />
 
-        <div className='add-player'>
-          <PlayerStatForm
-            players={groupPlayers}
-            onSave={onAddResult}
-            isActive={isActive === 'add-result'}
-            onCancel={toggleModal}
-            />
-        </div>
-      </div>
-    </article>
+      <PlayerStatForm
+        players={groupPlayers}
+        onSave={onAddResult}
+        isActive={isActive === 'add-result'}
+        onCancel={toggleModal}
+        />
+    </>
   )
 }

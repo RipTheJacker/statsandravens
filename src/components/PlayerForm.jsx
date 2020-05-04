@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import { useForm } from "react-hook-form"
 import { Modal } from '/components/Modal'
 
@@ -9,8 +9,6 @@ export const PlayerForm = (props) => {
   return (
     <Modal title={"Add Player"} isActive={isActive}>
       <form className='form' onSubmit={handleSubmit(onSave)}>
-        <h3 className='title'>New Player</h3>
-
         <div className='field'>
           <label className='label'>Name</label>
           <div className='control'>

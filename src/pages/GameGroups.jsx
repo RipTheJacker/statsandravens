@@ -49,7 +49,7 @@ export const GameGroups = () => {
   }
 
   return (
-    <article className='article'>
+    <section className='section'>
       <div className='container'>
         <div className='level'>
           <div className='level-left'>
@@ -64,7 +64,9 @@ export const GameGroups = () => {
           </div>
         </div>
 
-        {stats.groups.map( group => (<GroupCard key={group.id} group={group} />))}
+        <div className='card-list'>
+          {stats.groups.map( group => (<GroupCard key={group.id} group={group} />))}
+        </div>
 
         <GameGroupForm
           title="Create Group"
@@ -73,6 +75,6 @@ export const GameGroups = () => {
           onCancel={toggleModal}
           />
       </div>
-    </article>
+    </section>
   )
 }

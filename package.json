@@ -2,14 +2,14 @@
   "name": "statsandravens",
   "version": "1.0.0",
   "description": "Stat tracker for Game of Thrones board game",
-  "main": "dist/main/index.html",
+  "main": "dist/index.html",
   "source": "src/main.js",
   "repository": "https://github.com/RipTheJacker/statsandravens.git",
   "author": "RipTheJacker <kabari@gmail.com>",
   "license": "AGPL-3.0-or-later",
   "private": false,
   "scripts": {
-    "build": "parcel index.html",
+    "build": "parcel build src/index.html",
     "start": "parcel serve src/index.html --open"
   },
   "devDependencies": {

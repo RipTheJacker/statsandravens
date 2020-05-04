@@ -5,6 +5,8 @@ $navbar-breakpoint: $tablet;
 
 @import 'bulma';
 
+$gold: #F1D222;
+
 $houseColors: (
   "martell": #E3791B,
   "tyrell": #188E2A,
@@ -18,5 +20,34 @@ $houseColors: (
   .house-color-#{$house} {
     background-color: $color !important;
     color: findColorInvert($color) !important;
+  }
+}
+
+.card-list {
+  .card {
+    margin-bottom: $gap/2;
+  }
+}
+
+.has-text-gold {
+  color: $gold;
+}
+
+.level {
+  .level-item {
+    &.has-actions{
+      button {
+        visibility: hidden;
+      }
+    }
+
+  }
+
+  &:hover .level-item {
+    &.has-actions {
+      button {
+        visibility: visible;
+      }
+    }
   }
 }

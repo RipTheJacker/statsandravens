@@ -10,8 +10,6 @@ import { PlayerForm } from '/components/PlayerForm'
 import { GameCard } from '/components/GameCard'
 import { Loading } from '/components/Loading'
 import { LevelItem } from '/components/LevelItem'
-import { Houses } from '/config/constants'
-import { HouseLabel } from '/components/HouseLabel'
 
 const reducer = (state, action) => {
   switch (action.type) {
@@ -106,7 +104,8 @@ export const GameGroupDetails = () => {
   console.log("state", state)
 
   return (
-    <article>
+    <>
+    <section className='section'>
       <div className='container'>
         <div className='level'>
           <div className='level-left'>
@@ -124,8 +123,16 @@ export const GameGroupDetails = () => {
             </div>
           </div>
         </div>
+      </div>
+    </section>
 
+    <section className='section'>
+      <div className='container'>
         <div className='media'>
+          <div className='media-left'>
+            <p className='title is-5'>Players</p>
+          </div>
+
           <div className='media-content'>
             {state.players.map(player => (
               <nav className='level' key={player.id}>
@@ -149,22 +156,27 @@ export const GameGroupDetails = () => {
             ))}
           </div>
         </div>
+      </div>
+    </section>
 
-        <div>
-          <div className='level'>
-            <div className='level-left'>
-              <div>
-                <h3 className='title is-5'>Games</h3>
+        <section className='section'>
+          <div className='container'>
+            <div className='level'>
+              <div className='level-left'>
+                <div>
+                  <h3 className='title is-5'>Games</h3>
+                </div>
+              </div>
+              <div className='level-right'>
+                <div>
+                  <button className='button is-small' onClick={() => toggleModal('add-game')}>Add Game</button>
+                </div>
               </div>
             </div>
-            <div className='level-right'>
-              <div>
-                <button className='button is-small' onClick={() => toggleModal('add-game')}>Add Game</button>
-              </div>
-            </div>
-          </div>
-          {state.games.map( game => (<GameCard key={game.id} game={game} groupId={groupId} />))}
+
+            {state.games.map( game => (<GameCard key={game.id} game={game} groupId={groupId} />))}
         </div>
+      </section>
 
         <GameForm
           onSave={onAddGame}
@@ -178,7 +190,6 @@ export const GameGroupDetails = () => {
           onCancel={toggleModal}
           isActive={activeModal === 'add-player'}
           />
-      </div>
-    </article>
+    </>
   )
 }

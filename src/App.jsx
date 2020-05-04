@@ -24,19 +24,17 @@ const App = () => {
         </div>
       </nav>
 
-      <section className='section'>
-        <Switch>
-          <Route path='/' exact>
-            <GameGroups />
-          </Route>
-          <Route path='/groups/:groupId/games/:id'>
-            <GameStats />
-          </Route>
-          <Route path='/groups/:id'>
-            <GameGroupDetails />
-          </Route>
-        </Switch>
-      </section>
+      <Switch>
+        <Route path='/' exact>
+          <GameGroups />
+        </Route>
+        <Route path='/groups/:groupId/games/:id'>
+          <GameStats />
+        </Route>
+        <Route path='/groups/:id'>
+          <GameGroupDetails />
+        </Route>
+      </Switch>
     </Router>
   )
 }
