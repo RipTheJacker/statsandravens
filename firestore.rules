@@ -4,7 +4,7 @@ service cloud.firestore {
     function isOwner(groupId) {
       let group = get(/databases/$(database)/documents/game-groups/$(groupId));
 
-      return (member && member.data) || group.data.ownerId == request.auth.uid;
+      return group.data.ownerId == request.auth.uid;
     }
 
     function isGroupMember(groupId) {
@@ -12,6 +12,11 @@ service cloud.firestore {
       let isMember = request.auth.uid in group.data.members;
 
       return isMember || group.data.ownerId == request.auth.uid;
+    }
+
+    function canViewGroupList() {
+      let isMember = request.auth.uid in resource.data.members;
+      return isMember;
     }
 
     function groupWrite(groupId) {
@@ -29,10 +34,12 @@ service cloud.firestore {
 
     match /game-groups/{groupId} {
       allow write: if canCreate();
-      allow read: if isGroupMember(groupId);
+      allow list: if canViewGroupList();
+      allow get: if isGroupMember(groupId);
 
       match /{documents=**} {
       	allow write: if isGroupMember(groupId);
+      	allow read: if isGroupMember(groupId);
       }
     }
   }
