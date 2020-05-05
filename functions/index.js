@@ -1,15 +1,27 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
-admin.initializeApp();
+const { v4: uuid4 } = require('uuid');
 
-const db = admin.firestore();
+admin.initializeApp();
 
 // // Create and Deploy Your First Cloud Functions
 // // https://firebase.google.com/docs/functions/write-firebase-functions
 //
-// exports.helloWorld = functions.https.onRequest((request, response) => {
-//  response.send("Hello from Firebase!");
-// });
+exports.joinGroup = functions.https.onCall(async (data, context) => {
+  const { code } = data
+  const { uid } = context.auth
+  const db = admin.firestore()
+
+  const groupSnapshot = await db.collection('game-groups').where('joinCode', '==', code).get()
+
+  if (groupSnapshot.size < 1) {
+    throw new functions.https.HttpsError('permission-denied', 'No group found with this code!')
+  }
+
+  const group = groupSnapshot.docs[0]
+
+  return db.doc(`game-groups/${group.id}`).set({ members: admin.firestore.FieldValue.arrayUnion( uid ) }, { merge: true })
+});
 
 // const setPlayerStats = functions.firestore
 //   .document('game-groups/{groupId}/games/{gameId}')
@@ -24,6 +36,7 @@ exports.setGroupMembers = functions.firestore
   .document('game-groups/{groupId}')
   .onCreate((snapshot, context) => {
     const members = [ snapshot.get('ownerId') ]
+    const joinCode = uuid4()
 
-    return snapshot.ref.set({ members }, { merge: true })
+    return snapshot.ref.set({ members, joinCode }, { merge: true })
   })

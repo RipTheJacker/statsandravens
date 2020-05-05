@@ -5,6 +5,7 @@ import { GroupCard } from '/components/GroupCard'
 import { GameGroupForm } from '/components/GameGroupForm'
 import { useModal } from '/hooks/use-modal'
 import { useAppContext } from '/contexts/application'
+import { JoinGroupForm } from '/components/JoinGroupForm'
 
 export const GameGroups = () => {
 
@@ -58,13 +59,22 @@ export const GameGroups = () => {
       <div className='container'>
         <div className='level'>
           <div className='level-left'>
-            <div>
-              <h1 className='title'>Game Groups</h1>
+            <div className='level-item'>
+              <div>
+                <h1 className='title'>Game Groups</h1>
+              </div>
             </div>
           </div>
           <div className='level-right'>
-            <div>
-              <button className='button is-small' onClick={() => toggleModal('game-group-form')}>Create Group</button>
+            <div className='level-item'>
+              <div>
+                <button className='button is-small is-success' onClick={() => toggleModal('game-group-form')}>Create Group</button>
+              </div>
+            </div>
+            <div className='level-item'>
+              <div>
+                <button className='button is-small' onClick={() => toggleModal('join-group-form')}>Join Group</button>
+              </div>
             </div>
           </div>
         </div>
@@ -79,6 +89,8 @@ export const GameGroups = () => {
           onSave={onCreateGroup}
           onCancel={toggleModal}
           />
+
+        <JoinGroupForm onCancel={toggleModal} isActive={isActive === 'join-group-form'} />
       </div>
     </section>
   )

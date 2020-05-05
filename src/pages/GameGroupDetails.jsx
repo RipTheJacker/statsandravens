@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useReducer } from 'react'
+import React, { useEffect, useState, useReducer, useRef } from 'react'
 import produce from 'immer'
 import { useParams } from 'react-router-dom'
 
@@ -10,8 +10,10 @@ import { GameForm } from '/components/GameForm'
 import { PlayerForm } from '/components/PlayerForm'
 import { GameCard } from '/components/GameCard'
 import { Loading } from '/components/Loading'
+import { Icon } from '/components/Icon'
 import { LevelItem } from '/components/LevelItem'
 import { HouseLabel } from '/components/HouseLabel'
+import { Popover } from '/components/Popover'
 
 const reducer = (state, action) => {
   switch (action.type) {
@@ -41,6 +43,9 @@ export const GameGroupDetails = () => {
   const { id: groupId } = useParams()
   const db = useFirestore()
   const [group, setGroup] = useState(null)
+  const [popoverShown, togglePopover] = useState(false)
+
+  const popoverButton = useRef(null)
   const [ activeModal, toggleModal ] = useModal()
   const [state, setState] = useReducer(reducer, { games: [], players: [] })
   const doc = db.collection('game-groups').doc(groupId)
@@ -116,6 +121,26 @@ export const GameGroupDetails = () => {
             <div className='level-item'>
               <div>
                 <button className='button is-small' onClick={() => toggleModal('add-player')}>Add Player</button>
+              </div>
+            </div>
+            <div className='level-item'>
+              <div>
+                <button className='button is-small is-text' ref={popoverButton} onClick={() => togglePopover(!popoverShown)}>
+                  <Icon name='share-variant' />
+                  <span>Share Code</span>
+                </button>
+                <Popover handler={popoverButton} isShown={popoverShown}>
+                  <div className='field has-addons'>
+                    <p className='control'>
+                      <span className='button is-static is-small'>
+                        Code
+                      </span>
+                    </p>
+                    <p className='control'>
+                      <input type='text' className='input is-small' readOnly value={group.joinCode} />
+                    </p>
+                  </div>
+                </Popover>
               </div>
             </div>
           </div>

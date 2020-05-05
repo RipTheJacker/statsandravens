@@ -57,3 +57,11 @@ $houseColors: (
   display: flex;
   align-items: center;
 }
+
+.popover {
+  visibility: hidden;
+}
+
+.popover.is-shown {
+  visibility: visible;
+}
