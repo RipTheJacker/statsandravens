@@ -1,12 +1,23 @@
 import React, { useState, useEffect } from 'react'
 import { useForm } from "react-hook-form"
 import { Modal } from '/components/Modal'
+import { useAppContext } from '/contexts/application'
 
 export const GameGroupForm = ({ title, isActive, onSave, onCancel }) => {
-  const { register, errors, handleSubmit } = useForm()
+  const { register, errors, handleSubmit, reset } = useForm()
+  const { globalState } = useAppContext()
 
   const onSubmit = (data) => {
-    onSave(data)
+    onSave({
+      ...data,
+      ownerId: globalState.currentUser.uid
+    })
+    reset()
+  }
+
+  const handleCancel = () => {
+    onCancel()
+    reset()
   }
 
   return (
@@ -30,7 +41,7 @@ export const GameGroupForm = ({ title, isActive, onSave, onCancel }) => {
             <button className="button is-link">Create</button>
           </div>
           <div className="control">
-            <button className="button" onClick={onCancel}>Cancel</button>
+            <button className="button" onClick={handleCancel}>Cancel</button>
           </div>
         </div>
       </form>

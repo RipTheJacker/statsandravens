@@ -1,13 +1,22 @@
-import React from 'react'
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
+import React, { useEffect } from 'react'
+import { BrowserRouter as Router, Route, Switch, useHistory, useLocation } from 'react-router-dom'
 import { GameGroupDetails } from '/pages/GameGroupDetails'
 import { GameStats } from '/pages/GameStats'
 import { GameGroups } from '/pages/GameGroups'
+import { Login } from '/pages/Login'
 import { Anchor } from '/components/Anchor'
+import { useAppContext } from '/contexts/application'
+import { useFirestoreAuth } from '/hooks/use-firestore'
+import { AuthHandler, AuthRenderer } from '/components/AuthHandler'
+import { AuthButton } from '/components/AuthButton'
 
 const App = () => {
+  const { globalState } = useAppContext()
+
   return (
     <Router>
+      <AuthHandler />
+
       <nav className='navbar is-dark' role='navigation'>
         <div className='navbar-brand'>
           <div className='navbar-item'>
@@ -21,18 +30,33 @@ const App = () => {
               Groups
             </Anchor>
           </div>
+
+          <div className='navbar-end'>
+            <div className='navbar-item' href='/'>
+              <AuthButton globalState={globalState} />
+            </div>
+          </div>
         </div>
       </nav>
 
       <Switch>
+        <Route path='/login' exact>
+          <Login />
+        </Route>
         <Route path='/' exact>
-          <GameGroups />
+          <AuthRenderer>
+            <GameGroups />
+          </AuthRenderer>
         </Route>
         <Route path='/groups/:groupId/games/:id'>
-          <GameStats />
+          <AuthRenderer>
+            <GameStats />
+          </AuthRenderer>
         </Route>
         <Route path='/groups/:id'>
-          <GameGroupDetails />
+          <AuthRenderer>
+            <GameGroupDetails />
+          </AuthRenderer>
         </Route>
       </Switch>
     </Router>

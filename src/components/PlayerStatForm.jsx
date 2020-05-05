@@ -24,17 +24,27 @@ const DataField = ({label, name, register, errors}) => (
 )
 
 export const PlayerStatForm = (props) => {
-  const { players, onSave, onCancel, isActive } = props
-  const { register, errors, handleSubmit, reset } = useForm()
+  const { players, onSave, onCancel, isActive, stat } = props
+  const { register, errors, handleSubmit, setValue, reset } = useForm()
 
   const handleSave = (data) => {
     const player = players.find(p => p.id === data.playerId)
 
     onSave({...data, player})
+    reset()
   }
 
+  const handleCancel = () => {
+    onCancel()
+    reset()
+  }
+
+  useEffect(() => {
+    if (stat) setValue(Object.entries(stat).map(([k,v]) => ({ [k]: v })))
+  }, [stat])
+
   return (
-    <Modal title={"Add Game Result"} isActive={isActive}>
+    <Modal title={`${stat? "Edit" : "Add"} Game Result`} isActive={isActive}>
       <form className='form' onSubmit={handleSubmit(handleSave)}>
 
         <div className='field is-horizontal'>
@@ -86,7 +96,7 @@ export const PlayerStatForm = (props) => {
             <button className="button is-link">Submit</button>
           </div>
           <div className="control">
-            <button className="button is-link is-light" onClick={onCancel}>Cancel</button>
+            <button className="button is-link is-light" onClick={handleCancel}>Cancel</button>
           </div>
         </div>
       </form>

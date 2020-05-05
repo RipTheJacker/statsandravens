@@ -6,9 +6,19 @@ export const PlayerForm = (props) => {
   const { onSave, onCancel, isActive } = props
   const { register, errors, handleSubmit, reset } = useForm()
 
+  const onSubmit = (data) => {
+    onSave(data)
+    reset()
+  }
+
+  const handleCancel = () => {
+    onCancel()
+    reset()
+  }
+
   return (
     <Modal title={"Add Player"} isActive={isActive}>
-      <form className='form' onSubmit={handleSubmit(onSave)}>
+      <form className='form' onSubmit={handleSubmit(onSubmit)}>
         <div className='field'>
           <label className='label'>Name</label>
           <div className='control'>
@@ -26,7 +36,7 @@ export const PlayerForm = (props) => {
             <button className="button is-link">Submit</button>
           </div>
           <div className="control">
-            <button className="button is-link is-light" onClick={onCancel}>Cancel</button>
+            <button className="button is-link is-light" onClick={handleCancel}>Cancel</button>
           </div>
         </div>
       </form>

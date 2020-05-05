@@ -2,4 +2,7 @@ node_modules/
 src/config/firebase.js
 public/*
 dist/
+.nvmrc
 .parcel-cache/
+.cache/
+.firebase/

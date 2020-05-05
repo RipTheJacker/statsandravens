@@ -7,7 +7,7 @@ import "react-datepicker/dist/react-datepicker.css"
 
 export const GameForm = (props) => {
   const { title = "Add Game", isActive, onSave, onCancel } = props
-  const { register, handleSubmit, errors } = useForm({ mode: 'onChange' })
+  const { register, handleSubmit, errors, reset } = useForm()
   const [datePlayed, setDatePlayed] = useState(new Date())
 
   const onSubmit = (data) => {
@@ -16,6 +16,13 @@ export const GameForm = (props) => {
       rounds: parseInt(data.rounds, 10),
       date: datePlayed
     })
+
+    reset()
+  }
+
+  const handleCancel = () => {
+    onCancel()
+    reset()
   }
 
   return (
@@ -78,7 +85,7 @@ export const GameForm = (props) => {
             <button className="button is-link">Submit</button>
           </div>
           <div className="control">
-            <button className="button is-link is-light" onClick={onCancel}>Cancel</button>
+            <button className="button is-link is-light" onClick={handleCancel}>Cancel</button>
           </div>
         </div>
       </form>

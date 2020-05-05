@@ -4,6 +4,7 @@ import { useFirestore } from '/hooks/use-firestore'
 import { GroupCard } from '/components/GroupCard'
 import { GameGroupForm } from '/components/GameGroupForm'
 import { useModal } from '/hooks/use-modal'
+import { useAppContext } from '/contexts/application'
 
 export const GameGroups = () => {
 
@@ -27,16 +28,20 @@ export const GameGroups = () => {
   const [ isActive, toggleModal ] = useModal()
 
   const db = useFirestore()
+  const { globalState } = useAppContext()
 
   useEffect(() => (
-    db.collection('game-groups').onSnapshot((snapshot) => {
-      snapshot.docChanges().forEach((change) => {
-        setGroups({
-          type: change.type,
-          payload: { id: change.doc.id, ...change.doc.data() }
+    db.collection('game-groups')
+      .where('members', 'array-contains-any', [ globalState.currentUser.uid ])
+      .onSnapshot((snapshot) => {
+        console.log("group", snapshot.size, globalState.currentUser.uid)
+        snapshot.docChanges().forEach((change) => {
+          setGroups({
+            type: change.type,
+            payload: { id: change.doc.id, ...change.doc.data() }
+          })
         })
       })
-    })
   ), [])
 
   const onCreateGroup = (data) => {

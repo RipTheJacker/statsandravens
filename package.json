@@ -10,12 +10,14 @@
   "private": false,
   "scripts": {
     "build": "parcel build src/index.html",
-    "start": "parcel serve src/index.html --open"
+    "start": "parcel serve src/index.html --open",
+    "deploy": "yarn run build && firebase deploy --only hosting"
   },
   "devDependencies": {
     "eslint": "^6.8.0",
     "eslint-plugin-react": "^7.19.0",
-    "parcel": "^2.0.0-alpha.3.2",
+    "parcel-bundler": "^1.12.4",
+    "parcel-plugin-nuke-dist": "^1.0.1",
     "sass": "^1.26.5"
   },
   "dependencies": {

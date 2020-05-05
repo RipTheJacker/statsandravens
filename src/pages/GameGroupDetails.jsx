@@ -4,12 +4,14 @@ import { useParams } from 'react-router-dom'
 
 import { useFirestore } from '/hooks/use-firestore'
 import { useModal } from '/hooks/use-modal'
+import { useStats } from '/hooks/use-stats'
 
 import { GameForm } from '/components/GameForm'
 import { PlayerForm } from '/components/PlayerForm'
 import { GameCard } from '/components/GameCard'
 import { Loading } from '/components/Loading'
 import { LevelItem } from '/components/LevelItem'
+import { HouseLabel } from '/components/HouseLabel'
 
 const reducer = (state, action) => {
   switch (action.type) {
@@ -22,16 +24,13 @@ const reducer = (state, action) => {
           return record
         })
 
-        return { [draft[action.collection]]: list }
+        draft[action.collection] = list
       })
 
     case 'removed':
       return produce(state, draft => {
         const list = draft[action.collection].filter(record => record.id === action.doc.id)
-
-        return {
-          [draft[action.collection]]: list
-        }
+        draft[action.collection] = list
       })
     default:
       return state
@@ -43,11 +42,12 @@ export const GameGroupDetails = () => {
   const db = useFirestore()
   const [group, setGroup] = useState(null)
   const [ activeModal, toggleModal ] = useModal()
-
+  const [state, setState] = useReducer(reducer, { games: [], players: [] })
   const doc = db.collection('game-groups').doc(groupId)
 
+  const getStats = useStats(state.games, state.players)
+
   const onAddGame = (data) => {
-    console.log("data", data)
     doc.collection('games').add({
       ...data,
       results: [],
@@ -58,7 +58,6 @@ export const GameGroupDetails = () => {
   }
 
   const onAddPlayer = (data) => {
-    console.log("player updated", data)
     doc.collection('players').add({
       ...data,
       createdAt: new Date()
@@ -66,8 +65,6 @@ export const GameGroupDetails = () => {
       toggleModal()
     })
   }
-
-  const [state, setState] = useReducer(reducer, { games: [], players: [] })
 
   useEffect(() => {
     const groups = doc.onSnapshot((doc) => {
@@ -101,7 +98,7 @@ export const GameGroupDetails = () => {
 
   if (!group) return <Loading />
 
-  console.log("state", state)
+  const stats = getStats()
 
   return (
     <>
@@ -143,14 +140,12 @@ export const GameGroupDetails = () => {
                 <div className='level-right'>
                   <LevelItem
                     heading='Favorite House'
-                    title={
-                      <span className='tag is-medium'>
-                        {player.favoriteHouse}
-                      </span>
+                    data={
+                        <HouseLabel name={stats[player.id].favoriteHouse} />
                     }
                     />
-                  <LevelItem heading='Games Played' data={player.gamesPlayed} />
-                  <LevelItem heading='Wins' data={player.wins} />
+                  <LevelItem heading='Games Played' data={stats[player.id].gamesPlayed} />
+                  <LevelItem heading='Wins' data={stats[player.id].wins} />
                 </div>
               </nav>
             ))}
@@ -173,8 +168,9 @@ export const GameGroupDetails = () => {
                 </div>
               </div>
             </div>
-
-            {state.games.map( game => (<GameCard key={game.id} game={game} groupId={groupId} />))}
+            <div className='card-list'>
+              {state.games.map( game => (<GameCard key={game.id} game={game} groupId={groupId} />))}
+            </div>
         </div>
       </section>
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import ContentLoader from 'react-content-loader'
-import { useFirestore, addArrayItem, removeArrayItem } from '/hooks/use-firestore'
+import { useFirestore, removeArrayItem } from '/hooks/use-firestore'
 import { Timestamp } from '/components/Timestamp'
 import { Anchor } from '/components/Anchor'
 import { Icon } from '/components/Icon'
@@ -10,6 +10,7 @@ import ContentEditable from 'react-contenteditable'
 import { useModal } from '/hooks/use-modal'
 import { ConfirmationDialog } from '/components/ConfirmationDialog'
 import { firstBy } from "thenby"
+import { HouseLabel } from '/components/HouseLabel'
 
 const Loading = () => (
   <ContentLoader>
@@ -36,20 +37,27 @@ export const GameStats = () => {
   const [game, setGame] = useState(null)
   const [groupPlayers, setPlayers] = useState(null)
   const [resultToRemove, setResultToRemove] = useState(null)
+  const [editStat, setStatToEdit] = useState(null)
 
   const [isActive, toggleModal] = useModal()
+  const gameRef = db.doc(`/game-groups/${groupId}/games/${gameId}`)
 
   const onAddResult = (data) => {
-    db.doc(`/game-groups/${groupId}/games/${gameId}`)
-      .update({
-        results: addArrayItem( { ...data } )
-      }).then(() => {
-        toggleModal()
-      })
+    db.runTransaction(transaction => {
+      return transaction.get(gameRef)
+        .then(doc => {
+          const results = doc.data().results.filter(result => result.playerId !== data.playerId).concat(data)
+
+          transaction.update(gameRef, {
+            results
+          })
+        })
+    }).then(() => {
+      toggleModal()
+    })
   }
 
   const onRemoveResult = () => {
-
     db.doc(`/game-groups/${groupId}/games/${gameId}`)
       .update({
         results: removeArrayItem( resultToRemove )
@@ -71,6 +79,11 @@ export const GameStats = () => {
       })
   }
 
+  const toggleEdit = (record) => () => {
+    toggleModal(record ? 'add-result' : null)
+    setStatToEdit(record)
+  }
+
   useEffect(() => {
     const players$ = db.collection(`game-groups/${groupId}/players`)
       .onSnapshot((snapshot) => {
@@ -90,7 +103,6 @@ export const GameStats = () => {
 
   if (!game) return <Loading />
 
-console.log("results", game.results)
   const sortedResults = game.results.sort(
     firstBy('castles', 'desc')
       .thenBy('strongholds', 'desc')
@@ -146,6 +158,11 @@ console.log("results", game.results)
                   <button className='button is-small' onClick={() => toggleModal('add-result')}>Add Result</button>
                 </div>
               </div>
+              <div className='level-item'>
+                <div>
+                  <button className='button is-small is-danger' onClick={() => toggleModal('add-result')}>Delete Game</button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -175,11 +192,8 @@ console.log("results", game.results)
                   <div className='level-right'>
                     <div className='level-item has-text-centered'>
                       <div>
-                        <p className='heading'>House</p>
                         <p className='title'>
-                          <span className='tag is-medium'>
-                            {result.house}
-                          </span>
+                          <HouseLabel name={result.house} size='medium' />
                         </p>
                       </div>
                     </div>
@@ -188,7 +202,8 @@ console.log("results", game.results)
                     <StatItem heading='Power Tokens' data={result.powerTokens} />
                     <StatItem heading='Supply' data={result.supply} />
                     <div className='level-item has-actions'>
-                      <div>
+                      <div className='buttons'>
+                        <button className='button is-small is-rounded is-info' onClick={ toggleEdit(result) }>Edit</button>
                         <button className='button is-small is-rounded is-danger' onClick={() => setResultToRemove(result) }>Remove</button>
                       </div>
                     </div>
@@ -212,7 +227,8 @@ console.log("results", game.results)
         players={groupPlayers}
         onSave={onAddResult}
         isActive={isActive === 'add-result'}
-        onCancel={toggleModal}
+        stat={editStat}
+        onCancel={toggleEdit(null)}
         />
     </>
   )

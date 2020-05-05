@@ -1,8 +1,39 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write;
+    function isOwner(groupId) {
+      let group = get(/databases/$(database)/documents/game-groups/$(groupId));
+
+      return (member && member.data) || group.data.ownerId == request.auth.uid;
+    }
+
+    function isGroupMember(groupId) {
+      let group = get(/databases/$(database)/documents/game-groups/$(groupId));
+      let isMember = request.auth.uid in group.data.members;
+
+      return isMember || group.data.ownerId == request.auth.uid;
+    }
+
+    function groupWrite(groupId) {
+      let isMember = request.auth.uid in resource.data.members;
+      return isMember;
+    }
+
+    function canEdit() {
+      return resource.data.ownerId == request.auth.uid;
+    }
+
+    function canCreate() {
+      return request.resource.data.ownerId == request.auth.uid;
+    }
+
+    match /game-groups/{groupId} {
+      allow write: if canCreate();
+      allow read: if isGroupMember(groupId);
+
+      match /{documents=**} {
+      	allow write: if isGroupMember(groupId);
+      }
     }
   }
 }
