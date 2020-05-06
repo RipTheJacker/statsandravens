@@ -23,6 +23,33 @@ exports.joinGroup = functions.https.onCall(async (data, context) => {
   return db.doc(`game-groups/${group.id}`).set({ members: admin.firestore.FieldValue.arrayUnion( uid ) }, { merge: true })
 });
 
+exports.groupMembers = functions.https.onCall( async (data, context) => {
+  const { groupId } = data
+  const { uid } = context.auth
+  const db = admin.firestore()
+
+  const memberList = await db.doc(`game-groups/${groupId}`).get().then(snap => snap.get('members'))
+
+  const isMember = memberList.indexOf(uid) >= 0
+
+  if (!isMember) {
+    throw new functions.https.HttpsError('permission-denied', 'Not authorized to view group list.')
+  }
+
+  const auth = admin.auth()
+
+  const memberNames = memberList.map((uid) => {
+    return auth.getUser(uid)
+  })
+
+  return Promise.all(memberNames).then(
+    members => members.map(m => ({
+      uid: m.uid,
+      displayName: m.displayName
+    }))
+  )
+})
+
 // const setPlayerStats = functions.firestore
 //   .document('game-groups/{groupId}/games/{gameId}')
 //   .onWrite(async ( change, context ) => {

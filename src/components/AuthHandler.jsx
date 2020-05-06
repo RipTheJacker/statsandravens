@@ -1,13 +1,19 @@
 import React, { useEffect } from 'react'
-import { Redirect } from 'react-router-dom'
+import { Redirect, useHistory, useLocation  } from 'react-router-dom'
 import { useAppContext } from '/contexts/application'
 import { useFirestoreAuth } from '/hooks/use-firestore'
 
 export const AuthHandler = () => {
   const auth = useFirestoreAuth()
+  const history = useHistory()
+  const location = useLocation()
 
   useEffect(() => {
-    auth.getRedirectResult().catch(error => console.error("login error", error))
+    auth.getRedirectResult().then((result) => {
+      if (result && location.pathname.match(/login/)) {
+        history.push('/')
+      }
+    }).catch(error => console.error("login error", error))
   }, [])
 
   return null

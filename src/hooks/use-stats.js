@@ -47,7 +47,7 @@ export const useStats = (games, players) => {
         })
       }, { most: null })
 
-      return {...mem, [player.id]: { wins, gamesPlayed, favoriteHouse: favoriteHouse.most } }
+      return {...mem, [player.id]: { wins, gamesPlayed, favoriteHouse: favoriteHouse.most, debug: { favoriteHouse } } }
     }, {})
   }, [games, players])
 

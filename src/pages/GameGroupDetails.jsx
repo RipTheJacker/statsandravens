@@ -1,8 +1,10 @@
 import React, { useEffect, useState, useReducer, useRef } from 'react'
 import produce from 'immer'
 import { useParams } from 'react-router-dom'
+import ContentLoader from 'react-content-loader'
 
-import { useFirestore } from '/hooks/use-firestore'
+
+import { useFirestore, useFunctions } from '/hooks/use-firestore'
 import { useModal } from '/hooks/use-modal'
 import { useStats } from '/hooks/use-stats'
 
@@ -14,9 +16,21 @@ import { Icon } from '/components/Icon'
 import { LevelItem } from '/components/LevelItem'
 import { HouseLabel } from '/components/HouseLabel'
 import { Popover } from '/components/Popover'
+import { Quickview } from '/components/Quickview'
+
+const MemberLoading = () => (
+  <ContentLoader>
+    {/* Only SVG shapes */}
+    <rect x="0" y="0" rx="0" ry="0" width="100%" height="14" />
+    <rect x="0" y="18" rx="4" ry="4" width="100%" height="14" />
+    <rect x="0" y="36" rx="3" ry="3" width="100%" height="14" />
+  </ContentLoader>
+)
 
 const reducer = (state, action) => {
   switch (action.type) {
+    case 'members':
+      return produce(state, draft => { draft.members.push(...action.payload) })
     case 'added':
       return produce(state, draft => { draft[action.collection].push({id: action.doc.id, ...action.doc.data() }) })
     case 'modified':
@@ -44,10 +58,11 @@ export const GameGroupDetails = () => {
   const db = useFirestore()
   const [group, setGroup] = useState(null)
   const [popoverShown, togglePopover] = useState(false)
-
+  const [quickviewShown, toggleQuickview] = useState(false)
+  const getMembers = useFunctions('groupMembers')
   const popoverButton = useRef(null)
   const [ activeModal, toggleModal ] = useModal()
-  const [state, setState] = useReducer(reducer, { games: [], players: [] })
+  const [state, setState] = useReducer(reducer, { games: [], players: [], members: [] })
   const doc = db.collection('game-groups').doc(groupId)
 
   const getStats = useStats(state.games, state.players)
@@ -72,11 +87,11 @@ export const GameGroupDetails = () => {
   }
 
   useEffect(() => {
-    const groups = doc.onSnapshot((doc) => {
+    const group$ = doc.onSnapshot((doc) => {
       setGroup({id: doc.id, ...doc.data()})
     })
 
-    const games = doc.collection('games').onSnapshot((snapshot) => {
+    const games$ = doc.collection('games').onSnapshot((snapshot) => {
       snapshot.docChanges().forEach((change) => {
         setState({
           ...change,
@@ -85,7 +100,7 @@ export const GameGroupDetails = () => {
       })
     })
 
-    const players = doc.collection('players').onSnapshot((snapshot) => {
+    const players$ = doc.collection('players').onSnapshot((snapshot) => {
       snapshot.docChanges().forEach((change) => {
         setState({
           ...change,
@@ -95,16 +110,32 @@ export const GameGroupDetails = () => {
     })
 
     return () => {
-      groups()
-      games()
-      players()
+      group$()
+      games$()
+      players$()
     }
   }, [groupId])
+
+  useEffect(() => {
+    if (quickviewShown && !state.members.length) {
+      getMembers({groupId: groupId })
+        .then(result => {
+          console.log("members", result)
+          setState({
+            payload: result.data,
+            type: 'members'
+          })
+        })
+        .catch(error => console.log(error))
+    }
+  }, [groupId, quickviewShown])
 
   if (!group) return <Loading />
 
   const stats = getStats()
 
+  console.log("stats", state.players.map(p => ({name: p.name, ...stats[p.id]}) ))
+  
   return (
     <>
     <section className='section'>
@@ -123,6 +154,7 @@ export const GameGroupDetails = () => {
                 <button className='button is-small' onClick={() => toggleModal('add-player')}>Add Player</button>
               </div>
             </div>
+
             <div className='level-item'>
               <div>
                 <button className='button is-small is-text' ref={popoverButton} onClick={() => togglePopover(!popoverShown)}>
@@ -141,6 +173,14 @@ export const GameGroupDetails = () => {
                     </p>
                   </div>
                 </Popover>
+              </div>
+            </div>
+
+            <div className='level-item'>
+              <div>
+                <button className='button is-small' onClick={() => toggleQuickview(!quickviewShown)}>
+                  <Icon name='eye-settings' />
+                </button>
               </div>
             </div>
           </div>
@@ -198,6 +238,16 @@ export const GameGroupDetails = () => {
             </div>
         </div>
       </section>
+
+      <Quickview isActive={quickviewShown} title="Permissions" onClose={() => toggleQuickview(false)}>
+        <div className="box is-shadowless">
+          {!state.members.length && <MemberLoading />}
+
+          <ul>
+            {state.members.map(m => <li key={m.uid}>{m.displayName}</li>)}
+          </ul>
+        </div>
+      </Quickview>
 
         <GameForm
           onSave={onAddGame}
