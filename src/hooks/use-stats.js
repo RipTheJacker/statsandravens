@@ -2,14 +2,15 @@ import { useCallback } from 'react'
 import { firstBy } from 'thenby'
 import produce from 'immer'
 
-const getGameWinner = (game) => {
+const getSortedResults = (game) => {
   return game.results.slice().sort(
-    firstBy('castles', 'desc')
+    firstBy('winnerOverride', 'desc')
+      .thenBy((result) => result.castles + result.strongholds, 'desc')
       .thenBy('strongholds', 'desc')
       .thenBy('supply', 'desc')
       .thenBy('powerTokens', 'desc')
       .thenBy('ironThrone', 'desc')
-  )[0]
+  )
 }
 
 const findPlayer = (game, player) => {
@@ -18,9 +19,18 @@ const findPlayer = (game, player) => {
 
 const hasPlayer = (game, player) => !!findPlayer(game,player)
 
+export const useSortedResults = (game) => {
+  const sortedResults = useCallback(() => {
+    if (!game) return []
+    return getSortedResults(game)
+  }, [game])
+
+  return sortedResults
+}
+
 export const useStats = (games, players) => {
   const getStats = useCallback(() => {
-    const gameWinners = games.map(game => getGameWinner(game)).filter(g => g)
+    const gameWinners = games.map(game => getSortedResults(game)[0]).filter(g => g)
 
     return players.reduce((mem, player) => {
       const wins = gameWinners.reduce((count, winner) => winner.playerId === player.id ? count + 1 : count, 0)

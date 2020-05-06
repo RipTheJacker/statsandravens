@@ -9,7 +9,6 @@ export const useAuthInitializer = (update) => {
 
   useEffect(() => {
     return auth.onAuthStateChanged(function(user) {
-      console.log("auth state", user)
       if (user) {
         update({
           'isAuthenticated': true,

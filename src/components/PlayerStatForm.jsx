@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useEffect } from 'react'
 import { useForm } from "react-hook-form"
 import { Modal } from '/components/Modal'
 
@@ -15,6 +15,7 @@ const DataField = ({label, name, register, errors}) => (
             name={name}
             type='number'
             defaultValue={0}
+            min="0"
             ref={register({ required: true, min: 0 })} />
         </div>
         {errors[name] && <p className="help is-danger">This is required</p>}
@@ -30,7 +31,14 @@ export const PlayerStatForm = (props) => {
   const handleSave = (data) => {
     const player = players.find(p => p.id === data.playerId)
 
-    onSave({...data, player})
+    onSave({
+      ...data,
+      powerTokens: Number(data.powerTokens),
+      castles: Number(data.castles),
+      strongholds: Number(data.strongholds),
+      supply: Number(data.supply),
+      player
+    })
     reset()
   }
 
@@ -88,6 +96,16 @@ export const PlayerStatForm = (props) => {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+
+        <div className='field box is-shadowless'>
+          <p className='help'>The winner is automatically selected from the results using the game rules, but use this to manually set the game winner.</p>
+          <div className='control'>
+            <label className='checkbox'>
+              <input type="checkbox" name="winnerOverride" ref={register}/>
+              Set as winner?
+            </label>
           </div>
         </div>
 

@@ -9,7 +9,7 @@ import { PlayerStatForm } from '/components/PlayerStatForm'
 import ContentEditable from 'react-contenteditable'
 import { useModal } from '/hooks/use-modal'
 import { ConfirmationDialog } from '/components/ConfirmationDialog'
-import { firstBy } from "thenby"
+import { useSortedResults } from "/hooks/use-stats"
 import { HouseLabel } from '/components/HouseLabel'
 
 const Loading = () => (
@@ -38,6 +38,7 @@ export const GameStats = () => {
   const [groupPlayers, setPlayers] = useState(null)
   const [resultToRemove, setResultToRemove] = useState(null)
   const [editStat, setStatToEdit] = useState(null)
+  const getSortedResults = useSortedResults(game)
 
   const [isActive, toggleModal] = useModal()
   const gameRef = db.doc(`/game-groups/${groupId}/games/${gameId}`)
@@ -103,13 +104,7 @@ export const GameStats = () => {
 
   if (!game) return <Loading />
 
-  const sortedResults = game.results.sort(
-    firstBy('castles', 'desc')
-      .thenBy('strongholds', 'desc')
-      .thenBy('supply', 'desc')
-      .thenBy('powerTokens', 'desc')
-      .thenBy('ironThrone', 'desc')
-  )
+  const sortedResults = getSortedResults()
 
   return (
     <>
@@ -160,7 +155,7 @@ export const GameStats = () => {
               </div>
               <div className='level-item'>
                 <div>
-                  <button className='button is-small is-danger' onClick={() => toggleModal('add-result')}>Delete Game</button>
+                  <button className='button is-small is-danger' onClick={() => null}>Delete Game</button>
                 </div>
               </div>
             </div>

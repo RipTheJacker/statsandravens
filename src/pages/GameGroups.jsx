@@ -35,7 +35,6 @@ export const GameGroups = () => {
     db.collection('game-groups')
       .where('members', 'array-contains', globalState.currentUser.uid)
       .onSnapshot((snapshot) => {
-        console.log("group", snapshot.size, globalState.currentUser.uid)
         snapshot.docChanges().forEach((change) => {
           setGroups({
             type: change.type,
